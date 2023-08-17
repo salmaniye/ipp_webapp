@@ -1,0 +1,7 @@
+altair
+matplotlib
+numpy
+pandas
+plotly
+streamlit
+wordcloud
