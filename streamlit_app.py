@@ -18,6 +18,7 @@ from os import listdir
 # set deafult layout to wide
 st.set_page_config(layout="wide")
 header = st.container()
+graph_header = st.container()
 
 # initializing containers
 with st.sidebar:
@@ -41,7 +42,6 @@ common = st.container()
 def call_dataset(filename):
 	# load data
 	df = pd.read_csv(filename)
-	#df.drop(columns=['preprocessed_text'],inplace=True)
 	df = df[df["sentiment"].str.contains('ERROR') == False]
 	return df
 
@@ -94,13 +94,34 @@ with header:
 	st.markdown(f"## Sentiment of tweets on Indonesian Political Parties")
 	st.markdown("""This is a web app that displays tweets and their sentiment on the selected Day.""")
 
+# ----- GRAPH HEADER -----
+with graph_header:
+	fig_list = ['All parties','Gerindra','Golkar','NasDem','PAN','PDI-P',"PKB","PKS","PPP","PartaiDemokrat"]
+	fig_pkl_list = ["fig_all.pkl","fig_gerindra.pkl","fig_golkar.pkl","fig_nasdem.pkl","fig_pan.pkl","fig_pdip.pkl","fig_pkb.pkl","fig_pks.pkl","fig_ppp.pkl","fig_partaidemokrat.pkl"]
+	fig_dict =dict(zip(fig_list,fig_pkl_list))
+	selected_fig = st.selectbox('Select party to display:',fig_list)
+
+	fig_to_call = fig_dict.get(selected_fig)
+	called_fig = pickle.load(open(fig_to_call,'rb'))
+	called_fig.update_layout(width=1400)
+	st.plotly_chart(called_fig)
+
+
 # ----- CHOOSING CSV FILE -----
+
+# function to remove prefix and suffix
+
+def remove_both_sides(file_name):
+	file_name = file_name.lstrip('sentiment_')
+	file_name = file_name.rstrip('.csv')
+	return file_name
+
 with input_container:
 	# a dropdown for the user to choose the game to be displayed
 	filenames = sorted(listdir('sentiment_analysis/'))
 	filelist = [filename for filename in filenames if filename.endswith(".csv")]
 
-	day_date = st.selectbox('Select a day to display:', filelist)
+	day_date = st.selectbox('Select a day to display:', filelist, format_func=lambda x: remove_both_sides(x))
 	st.caption(f'You have selected: {day_date}')
 
 # ----- CREATING PARTY BAR CHART -----
@@ -160,7 +181,7 @@ def clear_inputs():
 	#st.session_state['dateinput2'] = max_date
 	st.session_state['opsentiment'] = ['positive', 'neutral', 'negative']
 	st.session_state['kw_s'] = ""
-	st.session_state['opparty'] = ['Gerindra','Golkar','NasDem','PAN','PDI-P',"PKB","PPP","PartaiDemokrat"]
+	st.session_state['opparty'] = ['Gerindra','Golkar','NasDem','PAN','PDI-P',"PKB","PKS","PPP","PartaiDemokrat"]
 	return
 
 ##############################################################################################
@@ -180,8 +201,8 @@ with inputs:
 		key='opsentiment')
 	
 	options_party = st.multiselect(label='Filter by party:',
-				options=['Gerindra','Golkar','NasDem','PAN','PDI-P',"PKB","PPP","PartaiDemokrat"],
-				default=['Gerindra','Golkar','NasDem','PAN','PDI-P',"PKB","PPP","PartaiDemokrat"],
+				options=['Gerindra','Golkar','NasDem','PAN','PDI-P',"PKB","PKS","PPP","PartaiDemokrat"],
+				default=['Gerindra','Golkar','NasDem','PAN','PDI-P',"PKB","PKS","PPP","PartaiDemokrat"],
 				key='opparty')
 
 	# search text in dataframe
